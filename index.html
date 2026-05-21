@@ -247,8 +247,18 @@
     }
 
     /* ── Responsive ── */
-    @media (max-width: 540px) {
+    @media (max-width: 768px) {
+      .card-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    }
+
+    @media (max-width: 480px) {
+      .site-header { padding: 10px 12px; gap: 8px; }
       .site-header h1 { font-size: .92rem; }
+      .lang-btn { padding: 6px 8px; font-size: .72rem; }
+      select { font-size: .82rem; }
+      .checklist-wrap { padding: 12px 12px 40px; }
+      .card-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .card-item input[type=checkbox] { width: 18px; height: 18px; }
     }
   </style>
 </head>
