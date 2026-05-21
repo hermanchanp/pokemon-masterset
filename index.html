@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pokémon TCG — Master Set Checklist</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f2f2f2;
+      color: #222;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      background: #fff;
+      border-bottom: 3px solid #cc0000;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 6px rgba(0,0,0,.1);
+    }
+    .site-header h1 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #cc0000;
+      white-space: nowrap;
+      letter-spacing: -.3px;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      flex-wrap: wrap;
+    }
+    select {
+      flex: 1;
+      min-width: 180px;
+      max-width: 420px;
+      padding: 7px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: .88rem;
+      background: #fafafa;
+      cursor: pointer;
+    }
+    select:disabled { opacity: .5; cursor: default; }
+    button {
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      border: 1px solid #ccc;
+      transition: opacity .15s;
+    }
+    button:hover { opacity: .8; }
+    .btn-print { background: #f5f5f5; color: #333; }
+    .btn-reset { background: #fff3f3; border-color: #f9a8a8; color: #c00; }
+
+    /* ── Language toggle ── */
+    .lang-group {
+      display: flex;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .lang-btn {
+      padding: 6px 10px;
+      font-size: .78rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 0;
+      background: #f5f5f5;
+      color: #555;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      border-right: 1px solid #ccc;
+    }
+    .lang-btn:last-child { border-right: none; }
+    .lang-btn:hover { background: #e8e8e8; }
+    .lang-btn.active { background: #cc0000; color: #fff; }
+
+    /* ── Progress ── */
+    .progress-bar {
+      padding: 10px 20px 8px;
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    .progress-bar p { font-size: .8rem; color: #555; margin-bottom: 5px; }
+    .bar-bg { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #43a047, #76c442);
+      border-radius: 4px;
+      transition: width .3s;
+      width: 0%;
+    }
+
+    /* ── Loader ── */
+    .loader {
+      text-align: center;
+      padding: 64px 24px;
+      color: #888;
+    }
+    .loader p { margin-bottom: 16px; font-size: .9rem; }
+    .loader-track {
+      max-width: 260px;
+      margin: 0 auto;
+      background: #e0e0e0;
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+    }
+    .loader-fill { height: 100%; background: #cc0000; border-radius: 4px; transition: width .15s; width: 0%; }
+    .loader-sub { font-size: .72rem; color: #bbb; margin-top: 10px; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 90px 24px;
+    }
+    .empty h2 { font-size: 1.3rem; color: #bbb; font-weight: 600; }
+    .empty p  { font-size: .88rem; color: #ccc; margin-top: 8px; max-width: 340px; margin-left: auto; margin-right: auto; }
+
+    /* ── Checklist ── */
+    .checklist-wrap { padding: 18px 20px 48px; max-width: 1100px; margin: 0 auto; }
+
+    .set-heading { margin-bottom: 18px; }
+    .set-heading h2 { font-size: 1.4rem; font-weight: 700; }
+    .set-heading p  { font-size: .8rem; color: #888; margin-top: 3px; }
+
+    .section-title {
+      font-size: .85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding-bottom: 6px;
+      margin: 26px 0 10px;
+      border-bottom: 2px solid #ccc;
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+    }
+    .section-title .cnt {
+      font-size: .7rem;
+      font-weight: 400;
+      color: #aaa;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    /* ── Card grid ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .card-item {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-top-width: 3px;
+      border-radius: 7px;
+      padding: 5px 5px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: background .15s;
+    }
+    .card-item.checked { background: #f4fff4; }
+
+    .card-item img {
+      width: 100%;
+      border-radius: 4px;
+      display: block;
+      background: #ececec;
+      aspect-ratio: 5/7;
+      object-fit: cover;
+    }
+
+    .card-foot {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .card-num  { font-size: .62rem; color: #bbb; flex-shrink: 0; }
+    .card-name {
+      font-size: .68rem;
+      font-weight: 600;
+      flex: 1;
+      line-height: 1.25;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .card-item input[type=checkbox] {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      cursor: pointer;
+      accent-color: #43a047;
+    }
+
+    .no-img {
+      width: 100%;
+      aspect-ratio: 5/7;
+      background: #e8e8e8;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+      font-weight: 700;
+      color: #bbb;
+    }
+
+    /* ── Print ── */
+    @media print {
+      .site-header { position: static; box-shadow: none; padding: 8px 12px; }
+      .controls    { display: none; }
+      .progress-bar { display: none; }
+      body { background: #fff; }
+      .checklist-wrap { padding: 8px; max-width: none; }
+      .card-grid { gap: 5px; }
+      .card-item {
+        page-break-inside: avoid;
+        border: 1px solid #ccc !important;
+        border-top-width: 3px !important;
+      }
+      .card-item input[type=checkbox] {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 540px) {
+      .site-header h1 { font-size: .92rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Pokémon TCG Checklist</h1>
+  <div class="controls">
+    <div class="lang-group">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="ja">JP</button>
+      <button class="lang-btn" data-lang="zh-cn">简中</button>
+      <button class="lang-btn" data-lang="zh-tw">繁中</button>
+    </div>
+    <select id="set-select" disabled>
+      <option>Loading sets…</option>
+    </select>
+    <button class="btn-reset" id="reset-btn" hidden>Reset</button>
+    <button class="btn-print" onclick="window.print()">Print / PDF</button>
+  </div>
+</header>
+
+<div class="progress-bar" id="progress-wrap" hidden>
+  <p id="progress-label">0 / 0 collected</p>
+  <div class="bar-bg"><div class="bar-fill" id="bar-fill"></div></div>
+</div>
+
+<div id="loader" class="loader" hidden>
+  <p>Loading card data…</p>
+  <div class="loader-track"><div class="loader-fill" id="loader-fill"></div></div>
+  <p class="loader-sub" id="loader-sub"></p>
+</div>
+
+<div id="empty" class="empty">
+  <h2>Master Set Checklist</h2>
+  <p>Select a Pokémon TCG set from the dropdown above to track your collection.</p>
+</div>
+
+<div id="checklist" class="checklist-wrap" hidden></div>
+
+<template id="no-img-tmpl">
+  <div class="no-img">No image</div>
+</template>
+
+<script>
+'use strict';
+
+const API_BASE = 'https://api.tcgdex.net/v2';
+
+const LANGS = {
+  'en':    'EN',
+  'ja':    'JP',
+  'zh-cn': '简中',
+  'zh-tw': '繁中',
+};
+
+let currentLang  = 'en';
+let currentSetId = null;
+let loadSeq      = 0;
+
+function api(path) { return `${API_BASE}/${currentLang}${path}`; }
+
+// Caches keyed by "lang:id" so switching language fetches fresh data
+const cardCache    = new Map();
+const setCache     = new Map();
+const setMetaCache = new Map();
+function cacheKey(id) { return `${currentLang}:${id}`; }
+
+// ── Section definitions (top → bottom in the binder) ──
+const SECTIONS = [
+  { id: 'pokemon', label: 'Pokémon',                  color: '#43a047' },
+  { id: 'trainer', label: 'Trainers & Items',          color: '#1e88e5' },
+  { id: 'energy',  label: 'Special Energy',            color: '#fb8c00' },
+  { id: 'illust',  label: 'Illustration Rare',         color: '#f4511e' },
+  { id: 'ultra',   label: 'Ultra Rare',                color: '#8e24aa' },
+  { id: 'sir',     label: 'Special Illustration Rare', color: '#d81b60' },
+  { id: 'hyper',   label: 'Hyper Rare',                color: '#f9a825' },
+  { id: 'other',   label: 'Other',                     color: '#78909c' },
+];
+
+function assignSection(card) {
+  const r   = (card.rarity   || '').toLowerCase();
+  const cat = (card.category || '').toLowerCase();
+  if (r.includes('hyper rare') || r === 'crown rare')                      return 'hyper';
+  if (r.includes('special illustration') || r.includes('special art rare')) return 'sir';
+  if (r.includes('ultra rare')   || r.includes('ace spec rare')
+   || r.includes('full art')     || r.includes('shiny ultra rare')
+   || r.includes('vmax')         || r.includes('vstar'))                   return 'ultra';
+  if (r.includes('illustration rare') || r.includes('shiny rare')
+   || r.includes('alternate art') || r.includes('alt art'))                return 'illust';
+  if (cat === 'energy')  return 'energy';
+  if (cat === 'trainer') return 'trainer';
+  if (cat === 'pokemon') return 'pokemon';
+  return 'other';
+}
+
+// ── Helpers ──
+function $(id) { return document.getElementById(id); }
+function show(id) { $(id).hidden = false; }
+function hide(id) { $(id).hidden = true; }
+
+async function getJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}: ${url}`);
+  return r.json();
+}
+
+function setLoaderProgress(frac, label) {
+  $('loader-fill').style.width = Math.round(frac * 100) + '%';
+  $('loader-sub').textContent  = label;
+}
+
+// ── 1. Language switcher ──
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    if (lang === currentLang) return;
+    currentLang  = lang;
+    currentSetId = null;
+
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b === btn));
+
+    // Reset UI and reload set list for the new language
+    hide('checklist');
+    hide('progress-wrap');
+    hide('empty');
+    $('reset-btn').hidden = true;
+    $('set-select').disabled = true;
+    $('set-select').innerHTML = '<option>Loading sets…</option>';
+
+    init();
+  });
+});
+
+// ── 2. Bootstrap: load set list ──
+async function init() {
+  try {
+    const sets = await getJSON(api('/sets'));
+    buildDropdown(sets);
+  } catch (e) {
+    console.error('Failed to load sets:', e);
+    $('set-select').innerHTML = '<option>Error — check connection</option>';
+  }
+}
+
+function buildDropdown(sets) {
+  const sel = $('set-select');
+
+  // Group by serie, preserving API order
+  const serieOrder = [];
+  const bySerieId  = new Map();
+  for (const s of sets) {
+    const sid   = s.serie?.id   ?? '_';
+    const sname = s.serie?.name ?? 'Other';
+    if (!bySerieId.has(sid)) {
+      bySerieId.set(sid, { name: sname, sets: [] });
+      serieOrder.push(sid);
+    }
+    bySerieId.get(sid).sets.push(s);
+  }
+
+  sel.innerHTML = '<option value="">— choose a set —</option>';
+
+  // Reverse so newest series appears at the top
+  for (const sid of [...serieOrder].reverse()) {
+    const serie = bySerieId.get(sid);
+    const og    = document.createElement('optgroup');
+    og.label    = serie.name;
+    for (const set of [...serie.sets].reverse()) {
+      const opt       = document.createElement('option');
+      opt.value       = set.id;
+      opt.textContent = set.name;
+      og.appendChild(opt);
+    }
+    sel.appendChild(og);
+  }
+
+  sel.disabled = false;
+
+  // Re-attach listener (old one is gone with the old element's listeners after innerHTML reset)
+  sel.addEventListener('change', () => { if (sel.value) loadSet(sel.value); });
+
+  // Show empty prompt if nothing loaded yet
+  if (!currentSetId) show('empty');
+}
+
+// ── 3. Load a set ──
+async function loadSet(setId) {
+  const mySeq = ++loadSeq;
+  currentSetId = setId;
+
+  hide('empty');
+  hide('checklist');
+  hide('progress-wrap');
+  $('reset-btn').hidden = true;
+  show('loader');
+  setLoaderProgress(0, '');
+
+  try {
+    let cards;
+    const ck = cacheKey(setId);
+
+    if (setCache.has(ck)) {
+      cards = setCache.get(ck);
+      setLoaderProgress(1, 'loaded from cache');
+    } else {
+      const setData = await getJSON(api(`/sets/${setId}`));
+      if (mySeq !== loadSeq) return;
+      setMetaCache.set(ck, setData);
+
+      const basicCards = setData.cards ?? [];
+      const total      = basicCards.length;
+      let done         = 0;
+
+      cards = await Promise.all(
+        basicCards.map(async (basic) => {
+          const ck2 = cacheKey(basic.id);
+          if (!cardCache.has(ck2)) {
+            try {
+              const full = await getJSON(api(`/cards/${basic.id}`));
+              // Prefer full card data, but keep basic.image as fallback if full has none
+              cardCache.set(ck2, { ...full, image: full.image || basic.image || null });
+            } catch {
+              cardCache.set(ck2, basic);
+            }
+          }
+          done++;
+          if (mySeq === loadSeq) setLoaderProgress(done / total, `${done} / ${total} cards`);
+          return cardCache.get(ck2);
+        })
+      );
+
+      if (mySeq !== loadSeq) return;
+      setCache.set(ck, cards);
+    }
+
+    hide('loader');
+    renderChecklist(setId, cards);
+
+  } catch (e) {
+    if (mySeq !== loadSeq) return;
+    console.error('Set load failed:', e);
+    hide('loader');
+    $('empty').innerHTML =
+      '<h2>Failed to load set</h2><p>Check your connection and try again.</p>';
+    show('empty');
+  }
+}
+
+// ── 4. Render ──
+function renderChecklist(setId, cards) {
+  const STORAGE_KEY = `pkm-ms-v1-${setId}`;
+  const saved       = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  const meta        = setMetaCache.get(cacheKey(setId)) ?? {};
+
+  const groups = new Map(SECTIONS.map(s => [s.id, []]));
+  for (const card of cards) groups.get(assignSection(card)).push(card);
+  for (const arr of groups.values()) {
+    arr.sort((a, b) => (parseInt(a.localId) || 0) - (parseInt(b.localId) || 0));
+  }
+
+  const container = $('checklist');
+  container.innerHTML = '';
+
+  const hd = document.createElement('div');
+  hd.className = 'set-heading';
+  const serieLabel = meta.serie?.name ? `${meta.serie.name} · ` : '';
+  hd.innerHTML = `
+    <h2>${meta.name ?? setId}</h2>
+    <p>${serieLabel}${setId.toUpperCase()} · ${cards.length} cards · ${LANGS[currentLang]}</p>
+  `;
+  container.appendChild(hd);
+
+  for (const sec of SECTIONS) {
+    const list = groups.get(sec.id);
+    if (!list?.length) continue;
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'section-title';
+    titleEl.style.borderBottomColor = sec.color;
+    titleEl.innerHTML =
+      `${sec.label} <span class="cnt">${list.length} card${list.length !== 1 ? 's' : ''}</span>`;
+    container.appendChild(titleEl);
+
+    const grid = document.createElement('div');
+    grid.className = 'card-grid';
+
+    for (const card of list) {
+      const isChecked = !!saved[card.id];
+      const imgSrc    = card.image ? `${card.image}/low.webp` : '';
+
+      const el = document.createElement('div');
+      el.className = `card-item${isChecked ? ' checked' : ''}`;
+      el.style.borderTopColor = sec.color;
+      el.dataset.id         = card.id;
+      el.dataset.storageKey = STORAGE_KEY;
+      const imgHtml = imgSrc
+        ? `<img src="${imgSrc}" alt="${card.name}" loading="lazy"
+                onerror="this.replaceWith(document.getElementById('no-img-tmpl').content.cloneNode(true).firstElementChild)">`
+        : `<div class="no-img">#${card.localId}</div>`;
+      el.innerHTML = `
+        ${imgHtml}
+        <div class="card-foot">
+          <span class="card-num">${card.localId}</span>
+          <span class="card-name">${card.name}</span>
+          <input type="checkbox" aria-label="${card.name}"${isChecked ? ' checked' : ''}>
+        </div>
+      `;
+      grid.appendChild(el);
+    }
+
+    container.appendChild(grid);
+  }
+
+  show('checklist');
+  show('progress-wrap');
+  $('reset-btn').hidden = false;
+  updateProgress();
+}
+
+// ── 5. Checkbox persistence ──
+document.addEventListener('change', e => {
+  const cb = e.target;
+  if (cb.type !== 'checkbox') return;
+  const cardEl = cb.closest('.card-item');
+  if (!cardEl) return;
+
+  const { id, storageKey: key } = cardEl.dataset;
+  cardEl.classList.toggle('checked', cb.checked);
+
+  const state = JSON.parse(localStorage.getItem(key) || '{}');
+  state[id] = cb.checked;
+  localStorage.setItem(key, JSON.stringify(state));
+  updateProgress();
+});
+
+function updateProgress() {
+  const all     = document.querySelectorAll('#checklist input[type=checkbox]');
+  const checked = document.querySelectorAll('#checklist input[type=checkbox]:checked');
+  const pct     = all.length ? checked.length / all.length * 100 : 0;
+  $('progress-label').textContent = `${checked.length} / ${all.length} collected`;
+  $('bar-fill').style.width = pct + '%';
+}
+
+// ── 6. Reset current set ──
+$('reset-btn').addEventListener('click', () => {
+  if (!currentSetId) return;
+  if (!confirm('Clear all checkmarks for this set?')) return;
+  localStorage.removeItem(`pkm-ms-v1-${currentSetId}`);
+  document.querySelectorAll('#checklist input[type=checkbox]').forEach(cb => {
+    cb.checked = false;
+    cb.closest('.card-item')?.classList.remove('checked');
+  });
+  updateProgress();
+});
+
+// ── Start ──
+init();
+</script>
+</body>
+</html>
