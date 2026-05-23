@@ -625,7 +625,7 @@ async function loadSet(setId) {
       setMetaCache.set(ck, fb.meta);
       cards = fb.cards.map(c => ({
         ...c,
-        image: `https://assets.tcgdex.net/en/me/${setId}/${c.localId}`,
+        image: `https://assets.pokemon.com/static-assets/content-assets/cms2/img/cards/web/${setId.toUpperCase()}/${setId.toUpperCase()}_EN_${parseInt(c.localId)}.png`,
       }));
       setCache.set(ck, cards);
       setLoaderProgress(1, `${cards.length} cards loaded`);
@@ -713,7 +713,9 @@ function renderChecklist(setId, cards) {
 
     for (const card of list) {
       const isChecked = !!saved[card.id];
-      const imgSrc    = card.image ? `${card.image}/low.webp` : '';
+      const imgSrc    = card.image
+        ? (card.image.match(/\.(png|jpg|webp)$/) ? card.image : `${card.image}/low.webp`)
+        : '';
 
       const el = document.createElement('div');
       el.className = `card-item${isChecked ? ' checked' : ''}`;
